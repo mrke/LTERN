@@ -3,8 +3,8 @@ source("../micro_australia/get.soil.R")
 
 longlat<-c(138.466, -23.766) # Ethabuka
 loc<-longlat
-ystart <- 2014# start year
-yfinish <- 2014# end year
+ystart <- 2015# start year
+yfinish <- 2016# end year
 nyears<-yfinish-ystart+1# integer, number of years for which to run the microclimate model
 
 DEP <- c(0., 1.,  3, 5.,  10,  15,  30.,  60.,  100.,  200.) # Soil nodes (cm) - keep spacing close near the surface, last value is where it is assumed that the soil temperature is at the annual mean air temperature
@@ -23,14 +23,14 @@ BulkDensity <- BD[seq(1,19,2)]*1000#rep(1360,10) # soil bulk density (kg/m3)
 
 # run microclimate model to get microclimate for ectotherm model and soil temps for predicting egg development and food availability
 micro<-micro_aust(loc = longlat, ystart = ystart, yfinish = yfinish, PE = PE, BB = BB, BD = 
-    BD, KS = KS, BulkDensity = BulkDensity, maxshade = 50, Usrhyt = 0.03, DEP = DEP, REFL = 0.2)
+    BD, KS = KS, BulkDensity = BulkDensity, maxshade = 50, Usrhyt = 0.03, DEP = DEP, REFL = 0.2, dailywind = 0)
 
 #save(micro,file = 'micro.Rda') # for use if no access to AWAP server
 #load('micro.Rda')
 
 # append dates
 tzone=paste("Etc/GMT-",10,sep="") # doing it this way ignores daylight savings!
-dates=seq(ISOdate(ystart,1,1,tz=tzone)-3600*12, ISOdate((ystart+nyears),1,1,tz=tzone)-3600*13, by="hours")
+dates=seq(ISOdate(ystart,1,1,tz=tzone)-3600*12, ISOdate(2016,2,7,tz=tzone)-3600*13, by="hours")
 dates=subset(dates, format(dates, "%m/%d")!= "02/29") # remove leap years
 metout=as.data.frame(micro$metout)
 shadmet=as.data.frame(micro$shadmet)
@@ -41,6 +41,24 @@ metout=cbind(dates,metout)
 soil=cbind(dates,soil)
 shadmet=cbind(dates,shadmet)
 shadsoil=cbind(dates,shadsoil)
+
+with(soil,plot(dates,D0cm,type='l'))
+with(soil,points(dates,D1cm,type='l',col=2))
+with(soil,points(dates,D3cm,type='l',col=3))
+with(soil,points(dates,D5cm,type='l',col=4))
+with(soil,points(dates,D10cm,type='l',col=5))
+with(soil,points(dates,D15cm,type='l',col=6))
+with(soil,points(dates,D30cm,type='l',col=7))
+with(soil,points(dates,D60cm,type='l',col=8))
+with(soil,points(dates,D100cm,type='l',col=9))
+with(soil,points(dates,D200cm,type='l',col=10))
+
+
+
+
+
+
+
 
 debpars=as.data.frame(read.csv('DEB model/DEB_pars_Tiliqua_rugosa.csv',header=FALSE))$V1
 startday=1#365*6 # make it 90 for T. rugosa loop day of year at which DEB model starts
